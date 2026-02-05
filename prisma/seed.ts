@@ -50,10 +50,11 @@ const toRow = (row: any) => ({
 
   status_perusahaan: cleanString(row.status_perusahaan) ?? "",
 
-  latitude: cleanNumber(row.latitude),
-  longitude: cleanNumber(row.longitude),
+  // Gunakan raw string untuk koordinat agar format seperti "2.027.422" tidak berubah
+  latitude: null, // row.latitude ? String(row.latitude) : null,
+  longitude: null, // row.longitude ? String(row.longitude) : null,
 
-  latlong_status: cleanString(row.latlong_status),
+  latlong_status: cleanString(row.latlong_status) ?? "",
 });
 
 /* =========================

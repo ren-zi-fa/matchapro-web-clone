@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { TandaiModal } from "./TandaiModal";
+import { LocationModal } from "./LocationModal";
 
 export type BusinessData = {
   id: string;
@@ -29,6 +31,8 @@ export type BusinessData = {
     latitude: string;
     longitude: string;
   };
+  initialLatitude?: string;
+  initialLongitude?: string;
 };
 
 interface BusinessCardProps {
@@ -37,10 +41,19 @@ interface BusinessCardProps {
 
 export function BusinessCard({ data }: BusinessCardProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const isGreen = data.isGC; // Green theme if Already GC (Ground Checked)
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+    <>
+      <TandaiModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        data={data}
+        onSuccess={() => window.location.reload()}
+      />
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
       <Card
         className={cn(
           "overflow-hidden border-0 shadow-sm transition-all duration-200",
@@ -100,40 +113,53 @@ export function BusinessCard({ data }: BusinessCardProps) {
 
                 {/* Content based on type */}
                 {data.isGC && data.gcData ? (
-                  <div className="space-y-4 bg-green-50/50 rounded-xl p-4 border border-green-100">
-                    <div className="flex items-center gap-2 text-green-700 font-semibold text-xs uppercase mb-2">
-                      <CheckCircle2 className="h-4 w-4" /> HASIL GROUND CHECK
+                  <>
+                    <div className="space-y-4 bg-green-50/50 rounded-xl p-4 border border-green-100">
+                      <div className="flex items-center gap-2 text-green-700 font-semibold text-xs uppercase mb-2">
+                        <CheckCircle2 className="h-4 w-4" /> HASIL GROUND CHECK
+                      </div>
+                      
+                      <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm space-y-1">
+                         <span className="text-[10px] text-gray-400 uppercase font-semibold">Status</span>
+                         <div>
+                           <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-0 shadow-none">
+                             {data.gcData.status}
+                           </Badge>
+                         </div>
+                      </div>
+
+                      <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm space-y-1">
+                         <span className="text-[10px] text-gray-400 uppercase font-semibold">Petugas</span>
+                         <div className="font-medium text-sm text-gray-900">{data.gcData.petugas}</div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm space-y-1">
+                          <span className="text-[10px] text-gray-400 uppercase font-semibold">Latitude</span>
+                          <div className="font-medium text-xs text-gray-900 break-all">{data.gcData.latitude}</div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm space-y-1">
+                          <span className="text-[10px] text-gray-400 uppercase font-semibold">Longitude</span>
+                          <div className="font-medium text-xs text-gray-900 break-all">{data.gcData.longitude}</div>
+                        </div>
+                      </div>
+
+                      <Button 
+                          variant="outline" 
+                          onClick={() => setIsLocationModalOpen(true)}
+                          className="w-full bg-white border-green-200 text-green-700 hover:bg-green-50 h-9 text-xs font-semibold"
+                      >
+                         <MapPin className="h-3 w-3 mr-2" /> Lihat Lokasi GC
+                      </Button>
                     </div>
                     
-                    <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm space-y-1">
-                       <span className="text-[10px] text-gray-400 uppercase font-semibold">Status</span>
-                       <div>
-                         <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-0 shadow-none">
-                           {data.gcData.status}
-                         </Badge>
-                       </div>
-                    </div>
-
-                    <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm space-y-1">
-                       <span className="text-[10px] text-gray-400 uppercase font-semibold">Petugas</span>
-                       <div className="font-medium text-sm text-gray-900">{data.gcData.petugas}</div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm space-y-1">
-                        <span className="text-[10px] text-gray-400 uppercase font-semibold">Latitude</span>
-                        <div className="font-medium text-xs text-gray-900 break-all">{data.gcData.latitude}</div>
-                      </div>
-                      <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm space-y-1">
-                        <span className="text-[10px] text-gray-400 uppercase font-semibold">Longitude</span>
-                        <div className="font-medium text-xs text-gray-900 break-all">{data.gcData.longitude}</div>
-                      </div>
-                    </div>
-
-                    <Button variant="outline" className="w-full bg-white border-green-200 text-green-700 hover:bg-green-50 h-9 text-xs font-semibold">
-                       <MapPin className="h-3 w-3 mr-2" /> Lihat Lokasi GC
-                    </Button>
-                  </div>
+                    <LocationModal 
+                      isOpen={isLocationModalOpen}
+                      onClose={() => setIsLocationModalOpen(false)}
+                      latitude={data.gcData.latitude}
+                      longitude={data.gcData.longitude}
+                    />
+                  </>
                 ) : (
                   // Regular Details
                   <div className="space-y-4">
@@ -168,9 +194,14 @@ export function BusinessCard({ data }: BusinessCardProps) {
                       <span className="text-gray-900 font-medium">{data.details?.geotagging || "Latitude: - | Longitude: -"}</span>
                     </div>
 
-                    <Button className="w-full bg-white border border-yellow-400 text-yellow-600 hover:bg-yellow-50 font-semibold h-10 shadow-sm">
-                      ⚑ Tandai
-                    </Button>
+                    {data.status === "Aktif" && (
+                      <Button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="w-full bg-white border border-yellow-400 text-yellow-600 hover:bg-yellow-50 font-semibold h-10 shadow-sm"
+                      >
+                        ⚑ Tandai
+                      </Button>
+                    )}
                     
                     <div className="text-center">
                         <button className="text-[10px] text-gray-400 hover:text-gray-600 flex items-center justify-center gap-1 mx-auto">
@@ -193,5 +224,6 @@ export function BusinessCard({ data }: BusinessCardProps) {
         </div>
       </Card>
     </Collapsible>
+    </>
   );
 }

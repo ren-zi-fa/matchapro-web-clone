@@ -1,0 +1,78 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
+
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const idsbr = searchParams.get("idsbr");
+    const nama_usaha = searchParams.get("nama_usaha");
+    const alamat_usaha = searchParams.get("alamat_usaha");
+    const kdprov = searchParams.get("kdprov");
+    const kdkab = searchParams.get("kdkab");
+    const kdkec = searchParams.get("kdkec");
+    const kddesa = searchParams.get("kddesa");
+    const status_perusahaan = searchParams.get("status"); // 'active', 'inactive', or undefined/'all'
+
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.business_locationsWhereInput = {};
+
+    if (idsbr) {
+      where.idsbr = parseInt(idsbr);
+    }
+    if (nama_usaha) {
+      where.nama_usaha = { contains: nama_usaha, mode: "insensitive" };
+    }
+    if (alamat_usaha) {
+      where.alamat_usaha = { contains: alamat_usaha, mode: "insensitive" };
+    }
+    if (kdprov) {
+      where.kdprov = parseInt(kdprov);
+    }
+    if (kdkab) {
+      where.kdkab = parseInt(kdkab);
+    }
+    if (kdkec) {
+      where.kdkec = parseInt(kdkec);
+    }
+    if (kddesa) {
+      where.kddesa = parseInt(kddesa);
+    }
+
+    // Status Filter Logic
+    if (status_perusahaan === 'active') {
+       where.status_perusahaan = 'Aktif';
+    } else if (status_perusahaan === 'inactive') {
+       where.status_perusahaan = { not: 'Aktif' };
+    }
+    // If 'all' or undefined, do nothing (fetch all)
+
+    const [total, businesses] = await prisma.$transaction([
+      prisma.business_locations.count({ where }),
+      prisma.business_locations.findMany({
+        take: limit,
+        skip: skip,
+        where,
+        orderBy: {
+          idsbr: 'asc'
+        }
+      })
+    ]);
+
+    return NextResponse.json({
+      data: businesses,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching businesses:", error);
+    return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
+  }
+}
