@@ -1,0 +1,16 @@
+services:
+  susesnas_db:
+    image: postgres:16
+    container_name: matcha_container
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: matcha_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgmatcha:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgmatcha:
