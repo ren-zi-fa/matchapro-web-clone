@@ -8,7 +8,7 @@ datasource db {
 }
 
 model business_locations {
-  idsbr             Int     @id
+  idsbr             String  @id
   nama_usaha        String
   alamat_usaha      String?
   kdprov            Int
@@ -23,4 +23,14 @@ model business_locations {
   latitude          String?
   longitude         String?
   latlong_status    String?
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  role      String   @default("user") // "admin" or "user"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

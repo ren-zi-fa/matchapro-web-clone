@@ -1,19 +1,79 @@
 import { Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Session } from "next-auth";
+import Link from "next/link";
+import { LogOut, Download } from "lucide-react";
+import { signOutAction } from "@/lib/auth-actions";
 
-export function Header() {
+export function Header({ session }: { session: Session | null }) {
+  const username = session?.user?.username;
+  // Format username: petugas1 -> ptg1
+  const formattedUsername = username?.startsWith("petugas")
+    ? username.replace("petugas", "ptg")
+    : username;
+
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between bg-white px-4 py-3 shadow-sm">
-      <Button variant="ghost" size="icon" className="-ml-2">
-        <Menu className="h-6 w-6 text-gray-700" />
-      </Button>
+      <div className="flex items-center">
+        <span className="text-xl font-bold text-green-600 tracking-tight">Matcha Clone</span>
+      </div>
       <div className="flex items-center gap-2">
-        <Avatar className="h-9 w-9 border-2 border-green-100">
-          <AvatarImage src="/placeholder-user.jpg" alt="User" />
-          <AvatarFallback className="bg-gray-200 text-gray-600">U</AvatarFallback>
-        </Avatar>
-        <div className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></div>
+        {session ? (
+            
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <div className="flex items-center gap-2 cursor-pointer">
+                    <span className="text-sm font-medium text-gray-700">{formattedUsername}</span>
+                    <div className="relative">
+                        <Avatar className="h-9 w-9 border-2 border-green-100">
+                            <AvatarImage src="/placeholder-user.jpg" alt="User" />
+                            <AvatarFallback className="bg-gray-200 text-gray-600">
+                            {formattedUsername ? formattedUsername.substring(0,2).toUpperCase() : "U"}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></div>
+                    </div>
+                </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {session.user.role === "admin" && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/download" className="cursor-pointer">
+                      <Download className="mr-2 h-4 w-4" />
+                      <span>Download Data</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              <DropdownMenuItem 
+                className="text-red-600 cursor-pointer"
+                onClick={async () => {
+                    await signOutAction();
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button asChild variant="outline" size="sm">
+            <Link href="/login">Login</Link>
+          </Button>
+        )}
       </div>
     </header>
   );

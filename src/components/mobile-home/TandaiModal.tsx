@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { X, MapPin, Loader2, Save } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,10 +17,13 @@ import { cn } from "@/lib/utils";
 
 import dynamic from "next/dynamic";
 
-const LeafletMap = dynamic(() => import("./LeafletMap"), { 
+const MapPicker = dynamic(
+  () => import("@/components/ui/MapPicker").then((mod) => mod.MapPicker),
+  { 
     ssr: false,
-    loading: () => <div className="h-full w-full bg-gray-100 animate-pulse flex items-center justify-center text-gray-400">Loading Map...</div> 
-});
+    loading: () => <div className="h-[200px] w-full bg-gray-100 flex items-center justify-center text-gray-400">Loading Map...</div>
+  }
+);
 
 
 interface TandaiModalProps {
@@ -99,87 +103,13 @@ export function TandaiModal({ isOpen, onClose, data, onSuccess }: TandaiModalPro
              }
          } catch(e) {}
       }
-      
-      // Only auto-fetch if NO existing coordinates
-      if (!hasExistingCoordinates) {
-          handleGetLocation(true);
-      }
     }
   }, [isOpen, data]);
-
-  const [showPermissionModal, setShowPermissionModal] = useState(false);
-  const [accuracy, setAccuracy] = useState<number | null>(null);
-  const [watchId, setWatchId] = useState<number | null>(null);
-
-  // Cleanup watch on unmount
-  useEffect(() => {
-    return () => {
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-    };
-  }, [watchId]);
-
-  const handleGetLocation = (silent = false) => {
-    setLoading(true);
-    if ("geolocation" in navigator) {
-      // Clear existing watch if any
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-
-      const id = navigator.geolocation.watchPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          const acc = pos.coords.accuracy;
-          
-          setFormData((prev) => ({
-            ...prev,
-            latitude: lat.toString(),
-            longitude: lng.toString(),
-          }));
-          setPosition([lat, lng]);
-          setAccuracy(acc);
-          
-          setLoading(false);
-          setPermissionState('granted');
-          setShowPermissionModal(false);
-        },
-        (err) => {
-          console.error("Location error:", err);
-          if (err.code === 1) {
-             setPermissionState('denied');
-             if (!silent) setShowPermissionModal(true);
-          }
-          
-          if (!silent && err.code !== 1) {
-             let msg = "Gagal mengambil lokasi.";
-             if (err.code === 2) msg = "Lokasi tidak tersedia/sinyal GPS lemah.";
-             else if (err.code === 3) msg = "Waktu permintaan lokasi habis.";
-             alert(msg);
-          }
-          setLoading(false);
-          // Clear watch on error
-          if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-        },
-        { 
-          enableHighAccuracy: true,
-          timeout: 20000, 
-          maximumAge: 0 
-        }
-      );
-      setWatchId(id);
-    } else {
-      if (!silent) {
-         alert("Geolocation tidak didukung browser ini.");
-      }
-      setLoading(false);
-    }
-  };
-
-
 
 
   const handleSubmit = async () => {
     if (!formData.gc_status) {
-        alert("Pilih keberadaan usaha terlebih dahulu!");
+        toast.error("Pilih keberadaan usaha terlebih dahulu!");
         return;
     }
 
@@ -199,11 +129,12 @@ export function TandaiModal({ isOpen, onClose, data, onSuccess }: TandaiModalPro
 
         if(!res.ok) throw new Error("Failed to update");
         
+        toast.success("Berhasil Menandai Usaha!");
         onSuccess();
         onClose();
     } catch (e) {
         console.error(e);
-        alert("Terjadi kesalahan saat menyimpan data.");
+        toast.error("Terjadi kesalahan saat menyimpan data.");
     } finally {
         setSubmitting(false);
     }
@@ -213,43 +144,7 @@ export function TandaiModal({ isOpen, onClose, data, onSuccess }: TandaiModalPro
 
   return (
     <>
-    {/* Permission Instruction Modal */}
-    {showPermissionModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
-            <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95">
-                <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center text-red-600">
-                        <MapPin className="h-6 w-6" />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900">Izin Lokasi Diperlukan</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                        Aplikasi membutuhkan akses lokasi Anda untuk memverifikasi posisi usaha.
-                        <br/><br/>
-                        <strong>Silakan aktifkan izin lokasi di pengaturan browser Anda dan coba lagi.</strong>
-                    </p>
-                    <div className="w-full pt-2">
-                        <Button 
-                            className="w-full bg-blue-600 hover:bg-blue-700" 
-                            onClick={() => {
-                                setShowPermissionModal(false);
-                                handleGetLocation(false);
-                            }}
-                        >
-                            Saya Sudah Mengaktifkan
-                        </Button>
-                        <Button 
-                            variant="ghost"
-                            className="w-full mt-2 text-gray-500" 
-                            onClick={() => setShowPermissionModal(false)}
-                        >
-                            Batal
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )}
-
+    {/* Permission Instruction Modal Removed - Using MapPicker's internal handling handled by user interaction */}
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-0">
       <div className="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
@@ -276,12 +171,11 @@ export function TandaiModal({ isOpen, onClose, data, onSuccess }: TandaiModalPro
                         <SelectValue placeholder="-- Pilih --" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="Ada">Ada</SelectItem>
+                        <SelectItem value="Aktif">Aktif</SelectItem>
                         <SelectItem value="Tidak Ditemukan">Tidak Ditemukan</SelectItem>
                         <SelectItem value="Tutup">Tutup</SelectItem>
-                        <SelectItem value="Pindah">Pindah</SelectItem>
                         <SelectItem value="Duplikat">Duplikat</SelectItem>
-                        <SelectItem value="Menolak">Menolak</SelectItem>
+                    
                     </SelectContent>
                 </Select>
             </div>
@@ -372,73 +266,40 @@ export function TandaiModal({ isOpen, onClose, data, onSuccess }: TandaiModalPro
              <div className="space-y-3 pt-2">
                 <div className="flex justify-between items-end">
                     <label className="text-xs font-semibold text-gray-500 uppercase">Lokasi Usaha</label>
-                    {permissionState === 'denied' && (
-                        <span className="text-[10px] text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full">
-                           ! Izin Lokasi Ditolak
-                        </span>
-                    )}
                 </div>
-                
-                <Button 
-                    onClick={() => handleGetLocation(false)} 
-                    disabled={hasExistingCoordinates}
-                    variant={permissionState === 'denied' ? "destructive" : "outline"}
-                    className={cn(
-                        "w-full h-10 font-medium transition-colors",
-                        permissionState === 'denied' 
-                           ? "" 
-                           : "border-blue-200 text-blue-600 bg-blue-50/50 hover:bg-blue-100 hover:text-blue-700",
-                        hasExistingCoordinates && "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-400"
-                    )}
-                >
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2"/> : <MapPin className="h-4 w-4 mr-2" />}
-                    {loading ? "Mencari Lokasi Terbaik..." : 
-                      hasExistingCoordinates ? "Lokasi Sudah Tersedia" :
-                      permissionState === 'denied' ? "Izin Ditolak - Klik untuk Coba Lagi" : "Ambil Lokasi Saat Ini"}
-                </Button>
 
-                {accuracy !== null && !hasExistingCoordinates && (
-                     <p className={cn(
-                        "text-[10px] text-center font-medium",
-                        accuracy <= 20 ? "text-green-600" : "text-orange-500"
-                     )}>
-                        Akurasi GPS: +/- {Math.round(accuracy)} meter 
-                        {accuracy > 50 && " (Sinyal Lemah)"}
-                     </p>
-                )}
+                {/* MapPicker handles Geolocation, Drag, and Tile Layers */}
+                <MapPicker 
+                    latitude={formData.latitude} 
+                    longitude={formData.longitude} 
+                    onLocationSelect={(lat, lng) => {
+                        setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                    }} 
+                />
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 mt-2">
                     <div className="space-y-1">
                         <label className="text-[10px] text-gray-400 font-medium">Latitude</label>
                         <Input 
                             value={formData.latitude} 
-                            readOnly 
-                            placeholder="" 
-                            className="bg-gray-50 text-xs h-9"
+                            onChange={(e) => setFormData({...formData, latitude: e.target.value})}
+                            placeholder="-0.xxxx" 
+                            className="bg-white text-xs h-9 border-gray-200 focus:ring-orange-500"
                         />
                     </div>
                      <div className="space-y-1">
                         <label className="text-[10px] text-gray-400 font-medium">Longitude</label>
                         <Input 
                             value={formData.longitude} 
-                            readOnly 
-                            placeholder="" 
-                            className="bg-gray-50 text-xs h-9"
+                            onChange={(e) => setFormData({...formData, longitude: e.target.value})}
+                            placeholder="99.xxxx" 
+                            className="bg-white text-xs h-9 border-gray-200 focus:ring-orange-500"
                         />
                     </div>
                 </div>
-
-                {/* Map Preview */}
-                <div className="h-[180px] w-full rounded-xl overflow-hidden border border-gray-200 relative z-0">
-                    {position ? (
-                         <LeafletMap position={position} />
-                    ) : (
-                        <div className="h-full w-full bg-slate-100 flex items-center justify-center text-gray-400 text-xs flex-col gap-2">
-                            <MapPin className="h-8 w-8 opacity-20" />
-                            <span>Lokasi belum diambil</span>
-                        </div>
-                    )}
-                </div>
+                <p className="text-[10px] text-gray-400 text-center">
+                    *Anda dapat mengisi koordinat secara manual atau geser pin pada peta.
+                </p>
              </div>
 
         </div>

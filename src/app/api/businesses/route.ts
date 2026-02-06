@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const kdkec = searchParams.get("kdkec");
     const kddesa = searchParams.get("kddesa");
     const status_perusahaan = searchParams.get("status"); // 'active', 'inactive', or undefined/'all'
+    const source = searchParams.get("source"); // 'user_added' or undefined
 
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -20,9 +21,14 @@ export async function GET(request: NextRequest) {
 
     const where: Prisma.business_locationsWhereInput = {};
 
-    if (idsbr) {
-      where.idsbr = parseInt(idsbr);
+    if (source === 'user_added') {
+      where.idsbr = { endsWith: '69' };
+    } else if (idsbr) {
+      where.idsbr = idsbr;
     }
+    
+    // Standard filters (apply regardless of source, or conditionally if desired)
+    // If user_added is on, we might still want to search by name/address within that subset.
     if (nama_usaha) {
       where.nama_usaha = { contains: nama_usaha, mode: "insensitive" };
     }
@@ -57,7 +63,7 @@ export async function GET(request: NextRequest) {
         skip: skip,
         where,
         orderBy: {
-          idsbr: 'asc'
+          idsbr: 'desc' // Newest first? Or default ASC? User added might be better desc
         }
       })
     ]);

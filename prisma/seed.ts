@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import path from "path";
 import { prisma } from "@/lib/db";
+import { hash } from "bcryptjs";
 
 /* =========================
    Helper normalisasi data
@@ -32,7 +33,7 @@ const cleanNumber = (v: any): number | null => {
 ========================= */
 
 const toRow = (row: any) => ({
-  idsbr: cleanNumber(row.idsbr)!, // primary key wajib ada
+  idsbr: String(cleanNumber(row.idsbr)!), // primary key wajib ada
 
   nama_usaha: cleanString(row.nama_usaha) ?? "",
 
@@ -62,38 +63,69 @@ const toRow = (row: any) => ({
 ========================= */
 
 async function main() {
-  const filePath = path.join(process.cwd(), "data-excel/data-seed.xlsx");
+  // Seed Users
+  console.log("Seeding users...");
+  
+  const { users: constantUsers } = require("@/constants/user");
 
-  const workbook = XLSX.readFile(filePath);
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
+  const seededUsers = [];
 
-  const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: null });
-
-  console.log(`Total baris Excel: ${rows.length}`);
-
-  const cleaned = rows
-    .map(toRow)
-    .filter((r) => r.idsbr !== null && r.idsbr !== undefined);
-
-  console.log(`Baris valid setelah cleaning: ${cleaned.length}`);
-
-  const chunkSize = 1000;
-
-  for (let i = 0; i < cleaned.length; i += chunkSize) {
-    const batch = cleaned.slice(i, i + chunkSize);
-
-    await prisma.business_locations.createMany({
-      data: batch,
-      skipDuplicates: true,
+  for (const user of constantUsers) {
+    const hashedPassword = await hash(user.password, 10);
+    seededUsers.push({
+      ...user,
+      password: hashedPassword,
     });
-
-    console.log(
-      `Inserted ${Math.min(i + chunkSize, cleaned.length)} / ${cleaned.length}`,
-    );
   }
 
-  console.log("Seed selesai. Database kini sinkron dengan realitas Excel.");
+  // Batch insert users
+  // Note: createMany is faster but requires unique constraints to be handled.
+  // We use skipDuplicates to avoid errors if re-seeding.
+  await prisma.user.createMany({
+    data: seededUsers,
+    skipDuplicates: true,
+  });
+
+  console.log(`Seeded ${seededUsers.length} users.`);
+
+  // Seed Business Locations (Existing logic)
+  const filePath = path.join(process.cwd(), "data-excel/data-seed.xlsx");
+
+  // Check if file exists, if not skip
+  try {
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: null });
+
+    console.log(`Total baris Excel: ${rows.length}`);
+
+    const cleaned = rows
+      .map(toRow)
+      .filter((r) => r.idsbr !== null && r.idsbr !== undefined);
+
+    console.log(`Baris valid setelah cleaning: ${cleaned.length}`);
+
+    const chunkSize = 1000;
+
+    for (let i = 0; i < cleaned.length; i += chunkSize) {
+      const batch = cleaned.slice(i, i + chunkSize);
+
+      await prisma.business_locations.createMany({
+        data: batch,
+        skipDuplicates: true,
+      });
+
+      console.log(
+        `Inserted ${Math.min(i + chunkSize, cleaned.length)} / ${cleaned.length}`,
+      );
+    }
+  } catch (error) {
+    console.log("Business data excel not found or error reading, skipping business seed.");
+  }
+
+  console.log("Seed selesai. Database kini sinkron.");
 }
 
 main()

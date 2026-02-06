@@ -7,15 +7,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const idString = (await params).id;
-    const id = parseInt(idString);
-
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid business ID" },
-        { status: 400 }
-      );
-    }
+    const id = (await params).id;
 
     const body = await request.json();
     const { gc_status, nama_usaha, alamat_usaha, latitude, longitude } = body;
