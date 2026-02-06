@@ -5,7 +5,7 @@ export async function GET() {
   try {
     // Group by status_perusahaan to get counts for each status
     const statusCounts = await prisma.business_locations.groupBy({
-      by: ['status_perusahaan'],
+      by: ["status_perusahaan"],
       _count: {
         status_perusahaan: true,
       },
@@ -21,7 +21,7 @@ export async function GET() {
       totalCount += count;
 
       // Logic: Only "aktif" is Active, everything else (Tutup, Tidak Ditemukan, Duplikat) is Nonactive
-      if (status === 'aktif') {
+      if (status === "aktif") {
         activeCount += count;
       } else {
         inactiveCount += count;
@@ -31,10 +31,13 @@ export async function GET() {
     return NextResponse.json({
       total: totalCount,
       active: activeCount,
-      inactive: inactiveCount
+      inactive: inactiveCount,
     });
   } catch (error) {
     console.error("Error fetching stats:", error);
-    return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch stats" },
+      { status: 500 },
+    );
   }
 }

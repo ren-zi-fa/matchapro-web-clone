@@ -1,6 +1,5 @@
-
-import 'dotenv/config';
-import { prisma } from './src/lib/db';
+import "dotenv/config";
+import { prisma } from "./src/lib/db";
 
 // const prisma = new PrismaClient(); // Removed as we import the instance
 
@@ -12,7 +11,9 @@ async function main() {
         latlong_status: null,
       },
     });
-    console.log(`Successfully updated ${result.count} records. All statuses cleared.`);
+    console.log(
+      `Successfully updated ${result.count} records. All statuses cleared.`,
+    );
   } catch (e) {
     console.error("Error resetting data:", e);
   } finally {

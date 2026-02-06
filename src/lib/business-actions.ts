@@ -1,8 +1,8 @@
 "use server";
 
-import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { prisma } from "@/lib/db";
 
 const createBusinessSchema = z.object({
   nama_usaha: z.string().min(1, "Nama usaha wajib diisi"),
@@ -10,16 +10,28 @@ const createBusinessSchema = z.object({
   status_perusahaan: z.string().min(1, "Status perusahaan wajib diisi"),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
+  nmkec: z.string().optional(),
+  nmdesa: z.string().optional(),
+  kdkec: z.string().optional(),
+  kddesa: z.string().optional(),
+  kdprov: z.string().optional(),
+  kdkab: z.string().optional(),
 });
 
 function generateIdsbr() {
   // Generate 8 random digits
-  const random8 = Math.floor(10000000 + Math.random() * 90000000).toString().substring(0, 8);
+  const random8 = Math.floor(10000000 + Math.random() * 90000000)
+    .toString()
+    .substring(0, 8);
   // Append "69"
   return `${random8}69`;
 }
 
-export async function createBusinessAction(prevState: any, formData: FormData) {
+export async function createBusinessAction(
+  // biome-ignore lint/suspicious/noExplicitAny: Server Action state
+  _prevState: any,
+  formData: FormData,
+) {
   try {
     const rawData = {
       nama_usaha: formData.get("nama_usaha"),
@@ -27,6 +39,12 @@ export async function createBusinessAction(prevState: any, formData: FormData) {
       status_perusahaan: formData.get("status_perusahaan"),
       latitude: formData.get("latitude"),
       longitude: formData.get("longitude"),
+      nmkec: formData.get("nmkec"),
+      nmdesa: formData.get("nmdesa"),
+      kdkec: formData.get("kdkec"),
+      kddesa: formData.get("kddesa"),
+      kdprov: formData.get("kdprov"),
+      kdkab: formData.get("kdkab"),
     };
 
     const validatedData = createBusinessSchema.safeParse(rawData);
@@ -38,7 +56,19 @@ export async function createBusinessAction(prevState: any, formData: FormData) {
       };
     }
 
-    const { nama_usaha, alamat_usaha, status_perusahaan, latitude, longitude } = validatedData.data;
+    const {
+      nama_usaha,
+      alamat_usaha,
+      status_perusahaan,
+      latitude,
+      longitude,
+      nmkec,
+      nmdesa,
+      kdkec,
+      kddesa,
+      kdprov,
+      kdkab,
+    } = validatedData.data;
 
     // Retry loop for unique ID
     let idsbr = generateIdsbr();
@@ -58,26 +88,16 @@ export async function createBusinessAction(prevState: any, formData: FormData) {
     }
 
     if (!isUnique) {
-      return { success: false, message: "Gagal membuat ID unik, silakan coba lagi." };
+      return {
+        success: false,
+        message: "Gagal membuat ID unik, silakan coba lagi.",
+      };
     }
 
     // Determine latlong_status based on coordinates
     let latlong_status = null;
     if (latitude && longitude) {
-        latlong_status = "56"; // Default/Custom code for manually added/complete? Or leave null? 
-        // User didn't specify code logic for latlong_status, but in previous code cleaning it was preserved.
-        // Let's check existing data or defaulting. 
-        // For new items, maybe "57" or similar? Let's stick to simple "Ada" or just keep what user provides?
-        // Actually schema has String? so we can set it if we want.
-        // If user didn't ask for specific latlong_status logic, let's assume it should be set if coords exist.
-        // Based on "BusinessList.tsx": isGC = item.latlong_status != null ...
-        
-        // Let's set it to "Baru" or similar if not specified, 
-        // OR reuse existing codes if we knew them. 
-        // For now, let's leave it null or empty unless we have a specific requirement.
-        // Wait, the prompt says "tampilkan semua filed kecuali ini... latlong_status String?"
-        // OK, I'll set it to "valid" if coordinates provided, else null.
-        latlong_status = "valid"; 
+      latlong_status = "valid";
     }
 
     await prisma.business_locations.create({
@@ -89,18 +109,18 @@ export async function createBusinessAction(prevState: any, formData: FormData) {
         latitude: latitude || null,
         longitude: longitude || null,
         latlong_status: latlong_status,
-        
-        // Hardcoded Read-Only Values
-        kdprov: 13,
-        kdkab: 12,
+
+        // Use parsed integer values
+        kdprov: kdprov ? parseInt(kdprov, 10) : 13,
+        kdkab: kdkab ? parseInt(kdkab, 10) : 12,
         nmprov: "SUMATERA BARAT",
         nmkab: "PASAMAN BARAT",
-        
+
         // Optional Nulls
-        kdkec: null,
-        kddesa: null,
-        nmkec: null,
-        nmdesa: null,
+        kdkec: kdkec ? parseInt(kdkec, 10) : null,
+        kddesa: kddesa ? parseInt(kddesa, 10) : null,
+        nmkec: nmkec || null,
+        nmdesa: nmdesa || null,
       },
     });
 
@@ -110,6 +130,9 @@ export async function createBusinessAction(prevState: any, formData: FormData) {
     return { success: true, message: "Usaha berhasil ditambahkan!" };
   } catch (error) {
     console.error("Create business error:", error);
-    return { success: false, message: "Terjadi kesalahan saat menyimpan data." };
+    return {
+      success: false,
+      message: "Terjadi kesalahan saat menyimpan data.",
+    };
   }
 }

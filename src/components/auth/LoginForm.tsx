@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,15 +12,13 @@ export default function LoginForm() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [errorMessage, formAction, isPending] = useActionState(
     authenticate,
-    undefined
+    undefined,
   );
 
   return (
     <form action={formAction} className="space-y-3">
       <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
-        <h1 className="mb-3 text-2xl font-bold">
-          Silahkan Login
-        </h1>
+        <h1 className="mb-3 text-2xl font-bold">Silahkan Login</h1>
         <div className="w-full">
           <div>
             <Label
@@ -62,7 +60,7 @@ export default function LoginForm() {
         </div>
         <input type="hidden" name="redirectTo" value={callbackUrl} />
         <Button className="mt-4 w-full" aria-disabled={isPending}>
-          Log in 
+          Log in
         </Button>
         <div
           className="flex h-8 items-end space-x-1"
@@ -70,13 +68,13 @@ export default function LoginForm() {
           aria-atomic="true"
         >
           {errorMessage && (
-            <>
-              <p className="text-sm text-red-500">{errorMessage}</p>
-            </>
+            <p className="text-sm text-red-500">{errorMessage}</p>
           )}
         </div>
       </div>
-      <footer className="text-center text-sm text-gray-500 fixed bottom-0 left-0 right-0">Prompted by : Renzi Febriandika (Antigravity)</footer>
+      <footer className="text-center text-sm text-gray-500 fixed bottom-0 left-0 right-0">
+        Prompted by : Renzi Febriandika (Antigravity)
+      </footer>
     </form>
   );
 }

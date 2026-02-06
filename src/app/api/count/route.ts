@@ -1,11 +1,11 @@
+import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const data = await prisma.business_locations.count();
     return NextResponse.json({
       data,
     });
-  } catch (error) {}
+  } catch (_error) {}
 }

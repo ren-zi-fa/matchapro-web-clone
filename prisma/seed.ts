@@ -1,9 +1,9 @@
-import * as XLSX from "xlsx";
-import path from "path";
-import { PrismaClient } from "@/generated/prisma/client";
-import { hash } from "bcryptjs";
+import path from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { hash } from "bcryptjs";
 import { Pool } from "pg";
+import * as XLSX from "xlsx";
+import { PrismaClient } from "@/generated/prisma/client";
 
 /* =========================
    Utils
@@ -11,18 +11,20 @@ import { Pool } from "pg";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// biome-ignore lint/suspicious/noExplicitAny: Seed utility
 const cleanString = (v: any): string | null => {
   if (v === null || v === undefined) return null;
   const s = String(v).trim();
   return s === "" ? null : s;
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: Seed utility
 const cleanNumber = (v: any): number | null => {
   if (v === null || v === undefined || v === "") return null;
 
   let s = String(v).trim();
   s = s.replace(/\./g, ""); // Remove thousands separator
-  s = s.replace(",", ".");  // Comma to dot
+  s = s.replace(",", "."); // Comma to dot
 
   const n = Number(s);
   return Number.isNaN(n) ? null : n;
@@ -32,7 +34,9 @@ const cleanNumber = (v: any): number | null => {
    Mapping Excel -> Prisma
 ========================= */
 
+// biome-ignore lint/suspicious/noExplicitAny: Row mapping
 const toRow = (row: any) => ({
+  // biome-ignore lint/style/noNonNullAssertion: Known data structure
   idsbr: String(cleanNumber(row.idsbr)!),
   nama_usaha: cleanString(row.nama_usaha) ?? "",
   alamat_usaha: cleanString(row.alamat_usaha),
@@ -91,7 +95,9 @@ async function main() {
       data: batch,
       skipDuplicates: true,
     });
-    console.log(`Seeded users ${Math.min(i + userChunkSize, seededUsers.length)} / ${seededUsers.length}`);
+    console.log(
+      `Seeded users ${Math.min(i + userChunkSize, seededUsers.length)} / ${seededUsers.length}`,
+    );
     await sleep(delayMs);
   }
 
@@ -106,6 +112,7 @@ async function main() {
   try {
     const workbook = XLSX.readFile(filePath);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    // biome-ignore lint/suspicious/noExplicitAny: External library return type
     const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: null });
 
     console.log(`Total Excel rows: ${rows.length}`);
@@ -125,13 +132,16 @@ async function main() {
         data: batch,
         skipDuplicates: true,
       });
-      console.log(`Inserted ${Math.min(i + chunkSize, cleaned.length)} / ${cleaned.length}`);
+      console.log(
+        `Inserted ${Math.min(i + chunkSize, cleaned.length)} / ${cleaned.length}`,
+      );
       await sleep(delayBusinessMs);
     }
     console.log("Business locations seeding completed.");
-
-  } catch (e) {
-    console.log("Excel file not found or error reading, skipping business seed.");
+  } catch (_e) {
+    console.log(
+      "Excel file not found or error reading, skipping business seed.",
+    );
   }
 
   await prisma.$disconnect();

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Loader2, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { PaginationWithLinks } from "@/components/ui/PaginationWithLinks";
 import {
   Table,
   TableBody,
@@ -16,30 +20,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2 } from "lucide-react";
-
-import { Input } from "@/components/ui/input";
 
 interface UserAddedBusinessesModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function UserAddedBusinessesModal({ open, onOpenChange }: UserAddedBusinessesModalProps) {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export function UserAddedBusinessesModal({
+  open,
+  onOpenChange,
+}: UserAddedBusinessesModalProps) {
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -52,63 +47,67 @@ export function UserAddedBusinessesModal({ open, onOpenChange }: UserAddedBusine
     return () => clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => {
-    if (open) {
-      fetchData();
-    }
-  }, [open, page, refreshKey, debouncedSearch]);
+  // SWR Key Generator
+  const getKey = () => {
+    if (!open) return null; // Don't fetch if modal is closed
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        source: 'user_added',
-        page: page.toString(),
-        limit: '10'
-      });
-      
-      if (debouncedSearch) {
-          params.append("nama_usaha", debouncedSearch);
-      }
+    const params = new URLSearchParams({
+      source: "user_added",
+      page: page.toString(),
+      limit: "10",
+    });
 
-      const res = await fetch(`/api/businesses?${params.toString()}`);
-      const json = await res.json();
-      if (json.data) {
-        setData(json.data);
-        setTotalPages(json.meta.totalPages);
-      }
-    } catch (error) {
-      console.error("Failed to fetch user added businesses", error);
-    } finally {
-      setLoading(false);
+    if (debouncedSearch) {
+      params.append("nama_usaha", debouncedSearch);
     }
+    return `/api/businesses?${params.toString()}`;
   };
 
-  const refresher = () => setRefreshKey(prev => prev + 1);
+  const {
+    data: result,
+    error,
+    isLoading,
+    mutate: refresh,
+  } = useSWR(getKey(), fetcher);
+
+  const data = result?.data || [];
+  const totalPages = result?.meta?.totalPages || 1;
+
+  const refresher = () => refresh();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] rounded-lg flex flex-col">
         <DialogHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-             <div className="space-y-1">
-                <DialogTitle>Hasil Tambah Usaha</DialogTitle>
-                <DialogDescription>
-                    Daftar usaha yang ditambahkan manual
-                </DialogDescription>
-             </div>
-             
-             <div className="flex w-full sm:w-auto items-center gap-2">
-                 <Input 
-                    placeholder="Cari Nama Usaha..." 
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="h-9 w-full sm:w-[200px]"
-                 />
-                 <Button variant="ghost" size="icon" onClick={refresher} disabled={loading} className="shrink-0">
-                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                 </Button>
-             </div>
+            <div className="space-y-1">
+              <DialogTitle>Hasil Tambah Usaha</DialogTitle>
+              <DialogDescription>
+                Daftar usaha yang ditambahkan manual
+              </DialogDescription>
+            </div>
+
+            <div className="flex w-full sm:w-auto items-center gap-2">
+              <Input
+                placeholder="Cari Nama Usaha..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-9 w-full sm:w-[200px]"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={refresher}
+                disabled={isLoading}
+                className="shrink-0"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
@@ -119,30 +118,48 @@ export function UserAddedBusinessesModal({ open, onOpenChange }: UserAddedBusine
                 <TableHead>IDSBR</TableHead>
                 <TableHead>Nama Usaha</TableHead>
                 <TableHead>Alamat</TableHead>
-               
+
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-8 text-gray-500"
+                  >
                     Memuat data...
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-8 text-red-500"
+                  >
+                    Gagal memuat data.
                   </TableCell>
                 </TableRow>
               ) : data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-8 text-gray-500"
+                  >
                     Belum ada data usaha yang ditambahkan.
                   </TableCell>
                 </TableRow>
               ) : (
-                data.map((item) => (
+                // biome-ignore lint/suspicious/noExplicitAny: Data structure varies
+                data.map((item: any) => (
                   <TableRow key={item.idsbr}>
                     <TableCell className="font-medium">{item.idsbr}</TableCell>
                     <TableCell>{item.nama_usaha}</TableCell>
-                    <TableCell className="truncate max-w-[150px]">{item.alamat_usaha || "-"}</TableCell>
-                  
+                    <TableCell className="truncate max-w-[150px]">
+                      {item.alamat_usaha || "-"}
+                    </TableCell>
+
                     <TableCell>{item.status_perusahaan}</TableCell>
                   </TableRow>
                 ))
@@ -153,39 +170,14 @@ export function UserAddedBusinessesModal({ open, onOpenChange }: UserAddedBusine
 
         {/* Pagination */}
         {totalPages > 1 && (
-             <div className="flex justify-center mt-4">
-                <Pagination>
-                    <PaginationContent>
-                        <PaginationItem>
-                            <PaginationPrevious 
-                                href="#" 
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    if (page > 1) setPage(page - 1);
-                                }}
-                                className={page <= 1 ? "pointer-events-none opacity-50" : ""}
-                            />
-                        </PaginationItem>
-                        <PaginationItem>
-                            <span className="px-4 text-sm font-medium">
-                                Page {page} of {totalPages}
-                            </span>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <PaginationNext 
-                                href="#" 
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    if (page < totalPages) setPage(page + 1);
-                                }}
-                                className={page >= totalPages ? "pointer-events-none opacity-50" : ""}
-                            />
-                        </PaginationItem>
-                    </PaginationContent>
-                </Pagination>
-             </div>
+          <div className="flex justify-center mt-4">
+            <PaginationWithLinks
+              page={page}
+              totalPages={totalPages}
+              onPageChange={(p) => setPage(p)}
+            />
+          </div>
         )}
-
       </DialogContent>
     </Dialog>
   );

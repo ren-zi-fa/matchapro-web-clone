@@ -11,6 +11,6 @@ export default defineConfig({
   },
   datasource: {
     // Supabase migrations require Session mode (Direct URL)
-    url: process.env["DIRECT_URL"] || process.env["DATABASE_URL"],
+    url: process.env.DIRECT_URL || process.env.DATABASE_URL,
   },
 });

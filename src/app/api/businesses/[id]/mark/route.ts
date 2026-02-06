@@ -1,10 +1,9 @@
-
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const id = (await params).id;
@@ -34,7 +33,7 @@ export async function PATCH(
     console.error("Error updating business:", error);
     return NextResponse.json(
       { error: "Failed to update business data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

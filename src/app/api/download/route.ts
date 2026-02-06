@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/db";
-import { auth } from "@/auth";
-import * as XLSX from "xlsx";
 import { NextResponse } from "next/server";
+import * as XLSX from "xlsx";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/db";
 
 export async function GET() {
   const session = await auth();
@@ -23,7 +23,8 @@ export async function GET() {
       status: 200,
       headers: {
         "Content-Disposition": 'attachment; filename="data-mitra.xlsx"',
-        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       },
     });
   } catch (error) {
