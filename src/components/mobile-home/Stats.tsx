@@ -48,6 +48,7 @@ export function Stats() {
                 ● Nonaktif: {loading ? "..." : stats.inactive.toLocaleString("id-ID")}
               </Badge>
             </div>
+            <p className="text-xs text-yellow-500 mt-1">Perhatikan Titik Koordinat jangan langsung Input</p>
           </div>
         </CardContent>
       </Card>
