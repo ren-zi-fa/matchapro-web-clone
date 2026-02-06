@@ -76,7 +76,7 @@ export default function LoginForm() {
           )}
         </div>
       </div>
-      <footer className="text-center text-sm text-gray-500 fixed bottom-0 left-0 right-0">Created by : Renzi Febriandika</footer>
+      <footer className="text-center text-sm text-gray-500 fixed bottom-0 left-0 right-0">Prompted by : Renzi Febriandika (Antigravity)</footer>
     </form>
   );
 }

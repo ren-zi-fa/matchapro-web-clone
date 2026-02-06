@@ -1,11 +1,15 @@
 import * as XLSX from "xlsx";
 import path from "path";
-import { prisma } from "@/lib/db";
+import { PrismaClient } from "@/generated/prisma/client";
 import { hash } from "bcryptjs";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 /* =========================
-   Helper normalisasi data
+   Utils
 ========================= */
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const cleanString = (v: any): string | null => {
   if (v === null || v === undefined) return null;
@@ -17,123 +21,125 @@ const cleanNumber = (v: any): number | null => {
   if (v === null || v === undefined || v === "") return null;
 
   let s = String(v).trim();
-
-  // hapus pemisah ribuan Indonesia: 2.027.422 → 2027422
-  s = s.replace(/\./g, "");
-
-  // ubah koma desimal jadi titik: 12,5 → 12.5
-  s = s.replace(",", ".");
+  s = s.replace(/\./g, ""); // Remove thousands separator
+  s = s.replace(",", ".");  // Comma to dot
 
   const n = Number(s);
   return Number.isNaN(n) ? null : n;
 };
 
 /* =========================
-   Mapping Excel → Prisma
+   Mapping Excel -> Prisma
 ========================= */
 
 const toRow = (row: any) => ({
-  idsbr: String(cleanNumber(row.idsbr)!), // primary key wajib ada
-
+  idsbr: String(cleanNumber(row.idsbr)!),
   nama_usaha: cleanString(row.nama_usaha) ?? "",
-
   alamat_usaha: cleanString(row.alamat_usaha),
-
   kdprov: cleanNumber(row.kdprov) ?? 0,
   kdkab: cleanNumber(row.kdkab) ?? 0,
   kdkec: cleanNumber(row.kdkec),
   kddesa: cleanNumber(row.kddesa),
-
   nmprov: cleanString(row.nmprov) ?? "",
   nmkab: cleanString(row.nmkab) ?? "",
   nmkec: cleanString(row.nmkec),
   nmdesa: cleanString(row.nmdesa),
-
   status_perusahaan: cleanString(row.status_perusahaan) ?? "",
-
-  // Gunakan raw string untuk koordinat agar format seperti "2.027.422" tidak berubah
-  latitude: null, // row.latitude ? String(row.latitude) : null,
-  longitude: null, // row.longitude ? String(row.longitude) : null,
-
+  latitude: null,
+  longitude: null,
   latlong_status: cleanString(row.latlong_status) ?? "",
 });
 
 /* =========================
-   Main seed process
+   Main
 ========================= */
 
 async function main() {
-  // Seed Users
   console.log("Seeding users...");
-  
-  const { users: constantUsers } = require("@/constants/user");
 
+  const { users: constantUsers } = require("@/constants/user");
   const seededUsers = [];
 
+  // Hash passwords first
   for (const user of constantUsers) {
     const hashedPassword = await hash(user.password, 10);
-    seededUsers.push({
-      ...user,
-      password: hashedPassword,
-    });
+    seededUsers.push({ ...user, password: hashedPassword });
   }
 
-  // Batch insert users
-  // Note: createMany is faster but requires unique constraints to be handled.
-  // We use skipDuplicates to avoid errors if re-seeding.
-  await prisma.user.createMany({
-    data: seededUsers,
-    skipDuplicates: true,
+  // Initialize Prisma Client (Standard TCP connection)
+  // Use DIRECT_URL for Supabase to avoid Transaction Pooler issues with prepared statements
+  const pool = new Pool({
+    connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 20000,
   });
 
-  console.log(`Seeded ${seededUsers.length} users.`);
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg(pool),
+  });
 
-  // Seed Business Locations (Existing logic)
+  /* =========================
+     Seed Users
+  ========================= */
+
+  const userChunkSize = 10;
+  const delayMs = 100;
+
+  for (let i = 0; i < seededUsers.length; i += userChunkSize) {
+    const batch = seededUsers.slice(i, i + userChunkSize);
+    await prisma.user.createMany({
+      data: batch,
+      skipDuplicates: true,
+    });
+    console.log(`Seeded users ${Math.min(i + userChunkSize, seededUsers.length)} / ${seededUsers.length}`);
+    await sleep(delayMs);
+  }
+
+  console.log("Users seeding completed.");
+
+  /* =========================
+     Seed Business Locations
+  ========================= */
+
   const filePath = path.join(process.cwd(), "data-excel/data-seed.xlsx");
 
-  // Check if file exists, if not skip
   try {
     const workbook = XLSX.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: null });
 
-    console.log(`Total baris Excel: ${rows.length}`);
+    console.log(`Total Excel rows: ${rows.length}`);
 
     const cleaned = rows
       .map(toRow)
       .filter((r) => r.idsbr !== null && r.idsbr !== undefined);
 
-    console.log(`Baris valid setelah cleaning: ${cleaned.length}`);
+    console.log(`Valid rows: ${cleaned.length}`);
 
-    const chunkSize = 1000;
+    const chunkSize = 200;
+    const delayBusinessMs = 200;
 
     for (let i = 0; i < cleaned.length; i += chunkSize) {
       const batch = cleaned.slice(i, i + chunkSize);
-
       await prisma.business_locations.createMany({
         data: batch,
         skipDuplicates: true,
       });
-
-      console.log(
-        `Inserted ${Math.min(i + chunkSize, cleaned.length)} / ${cleaned.length}`,
-      );
+      console.log(`Inserted ${Math.min(i + chunkSize, cleaned.length)} / ${cleaned.length}`);
+      await sleep(delayBusinessMs);
     }
-  } catch (error) {
-    console.log("Business data excel not found or error reading, skipping business seed.");
+    console.log("Business locations seeding completed.");
+
+  } catch (e) {
+    console.log("Excel file not found or error reading, skipping business seed.");
   }
 
-  console.log("Seed selesai. Database kini sinkron.");
+  await prisma.$disconnect();
+  console.log("Seed finished successfully.");
 }
 
-main()
-  .catch((err) => {
-    console.error("Seed gagal:");
-    console.error(err);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch((err) => {
+  console.error("Seed failed:");
+  console.error(err);
+  process.exit(1);
+});
