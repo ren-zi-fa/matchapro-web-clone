@@ -1,4 +1,5 @@
 import { Menu } from "lucide-react";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +24,9 @@ export function Header({ session }: { session: Session | null }) {
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between bg-white px-4 py-3 shadow-sm">
-      <div className="flex items-center">
-        <span className="text-xl font-bold text-green-600 tracking-tight">Matcha Clone</span>
+      <div className="flex items-center gap-3">
+        <img src="/logo.png" alt="Logo BPS" width={30} height={40} className="object-contain" />
+        <span className="text-xl font-bold text-green-600 tracking-tight">BPS Pasbar</span>
       </div>
       <div className="flex items-center gap-2">
         {session ? (
