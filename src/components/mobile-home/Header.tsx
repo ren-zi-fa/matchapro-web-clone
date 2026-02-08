@@ -89,7 +89,7 @@ export function Header({ session }: { session: Session | null }) {
                   <DropdownMenuItem asChild>
                     <Link href="/admin/new-businesses" className="cursor-pointer">
                       <ClipboardList className="mr-2 h-4 w-4" />
-                      <span>Review Bisnis Baru</span>
+                      <span>Review Bisnis Ditambahkan</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
