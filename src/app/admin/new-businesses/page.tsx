@@ -1,5 +1,8 @@
-import { Prisma } from "@/generated/prisma/client";
-import { prisma } from "@/lib/db";
+import Link from "next/link";
+import { prisma } from "@/shared/lib/db";
+import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import {
   Table,
   TableBody,
@@ -7,24 +10,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
-import { URLPagination } from "@/components/ui/URLPagination";
-
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+} from "@/shared/ui/table";
+import { URLPagination } from "@/shared/ui/URLPagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminNewBusinessesPage(
-  props: {
-    searchParams: Promise<{
-      page?: string;
-    }>;
-  },
-) {
+export default async function AdminNewBusinessesPage(props: {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+}) {
   const searchParams = await props.searchParams;
   const page = Number(searchParams.page) || 1;
   const pageSize = 10;
@@ -67,7 +62,11 @@ export default async function AdminNewBusinessesPage(
       <Card>
         <CardHeader className="flex flex-row items-center gap-4 space-y-0">
           <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full hover:bg-slate-100">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-slate-100"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -85,7 +84,9 @@ export default async function AdminNewBusinessesPage(
               </svg>
             </Button>
           </Link>
-          <CardTitle className="text-xl">Review Yang Ditambahkan Oleh User</CardTitle>
+          <CardTitle className="text-xl">
+            Review Yang Ditambahkan Oleh User
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -102,26 +103,46 @@ export default async function AdminNewBusinessesPage(
               <TableBody>
                 {newBusinesses.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    <TableCell
+                      colSpan={5}
+                      className="text-center py-8 text-gray-500"
+                    >
                       Belum ada bisnis baru yang ditambahkan user.
                     </TableCell>
                   </TableRow>
                 ) : (
                   newBusinesses.map((business) => (
                     <TableRow key={business.idsbr}>
-                      <TableCell className="font-mono text-xs">{business.idsbr}</TableCell>
-                      <TableCell className="font-medium">{business.nama_usaha}</TableCell>
-                      <TableCell className="max-w-[200px] truncate" title={business.alamat_usaha || ""}>
+                      <TableCell className="font-mono text-xs">
+                        {business.idsbr}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {business.nama_usaha}
+                      </TableCell>
+                      <TableCell
+                        className="max-w-[200px] truncate"
+                        title={business.alamat_usaha || ""}
+                      >
                         {business.alamat_usaha || "-"}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium text-sm">{business.createdBy?.username}</span>
-                          <span className="text-xs text-gray-500">{business.createdBy?.email}</span>
+                          <span className="font-medium text-sm">
+                            {business.createdBy?.username}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {business.createdBy?.email}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={business.status_perusahaan === "Aktif" ? "default" : "secondary"}>
+                        <Badge
+                          variant={
+                            business.status_perusahaan === "Aktif"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
                           {business.status_perusahaan}
                         </Badge>
                       </TableCell>
@@ -131,9 +152,9 @@ export default async function AdminNewBusinessesPage(
               </TableBody>
             </Table>
           </div>
-          
+
           <div className="mt-4 flex justify-center">
-             <URLPagination page={page} totalPages={totalPages} />
+            <URLPagination page={page} totalPages={totalPages} />
           </div>
         </CardContent>
       </Card>

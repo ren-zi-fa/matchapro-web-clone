@@ -4,10 +4,10 @@ import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema: "src/prisma/schema.prisma",
   migrations: {
-    path: "prisma/migrations",
-    seed: "tsx prisma/seed.ts",
+    path: "src/prisma/migrations",
+    seed: "tsx src/prisma/seed.ts",
   },
   datasource: {
     // Supabase migrations require Session mode (Direct URL)

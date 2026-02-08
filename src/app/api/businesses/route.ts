@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import type { Prisma } from "@/generated/prisma/client";
-import { prisma } from "@/lib/db";
+import type { Prisma } from "@/prisma/generated/prisma/client";
+import { prisma } from "@/shared/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,9 +25,12 @@ export async function GET(request: NextRequest) {
       const { auth } = await import("@/auth");
       const session = await auth();
       if (!session?.user?.id) {
-          return NextResponse.json({ data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } });
+        return NextResponse.json({
+          data: [],
+          meta: { total: 0, page: 1, limit: 10, totalPages: 0 },
+        });
       }
-      
+
       // Filter by createdById if it exists, otherwise fallback to empty or legacy
       // But user requested "bukan berdasarkan angka belakang 69"
       where.createdById = session.user.id;

@@ -4,9 +4,9 @@ import { Download, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PaginationWithLinks } from "@/components/ui/PaginationWithLinks";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { PaginationWithLinks } from "@/shared/ui/PaginationWithLinks";
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/shared/ui/table";
 
 // Create a simple hook if not exists, or just use setTimeout logic inside component for simplicity first.
 // I will implement a simple debounce inside component to avoid extra deps if possible, or create the hook.
@@ -98,7 +98,11 @@ function AdminDownloadContent() {
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <div className="flex items-center gap-4 w-full md:w-auto">
           <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full hover:bg-slate-100 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-slate-100 shrink-0"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/shared/lib/db";
 
 export async function GET() {
   const session = await auth();

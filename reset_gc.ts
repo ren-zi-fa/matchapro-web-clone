@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { prisma } from "./src/lib/db";
+import { prisma } from "./src/shared/lib/db";
 
 // const prisma = new PrismaClient(); // Removed as we import the instance
 
