@@ -96,7 +96,28 @@ function AdminDownloadContent() {
   return (
     <div className="container mx-auto py-10 px-4">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold">Data Usaha (Admin)</h1>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <Link href="/">
+            <Button variant="ghost" size="icon" className="rounded-full hover:bg-slate-100 shrink-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-arrow-left h-5 w-5"
+              >
+                <path d="m12 19-7-7 7-7" />
+                <path d="M19 12H5" />
+              </svg>
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold">Data Usaha (Admin)</h1>
+        </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
           <div className="relative w-full md:w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />

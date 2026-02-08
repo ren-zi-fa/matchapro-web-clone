@@ -32,12 +32,16 @@ export const authConfig = {
       if (token.username && session.user) {
         session.user.username = token.username as string;
       }
+      if (token.points !== undefined && session.user) {
+        session.user.points = token.points as number;
+      }
       return session;
     },
     async jwt({ token, user, trigger: _trigger, session: _session }) {
       if (user) {
         token.role = user.role;
         token.username = user.username;
+        token.points = user.points;
       }
       return token;
     },

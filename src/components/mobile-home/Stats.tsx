@@ -1,30 +1,22 @@
 "use client";
 
 import { LayoutGrid } from "lucide-react";
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function Stats() {
-  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
-  const [loading, setLoading] = useState(true);
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const res = await fetch("/api/businesses/stats");
-        const data = await res.json();
-        if (!data.error) {
-          setStats(data);
-        }
-      } catch (error) {
-        console.error("Failed to load stats", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchStats();
-  }, []);
+export function Stats() {
+  const { data, isLoading } = useSWR("/api/businesses/stats", fetcher, {
+    revalidateOnFocus: false, // User requested no refetch on focus
+    revalidateOnReconnect: false, // Also disable on reconnect to be safe
+    revalidateIfStale: false, 
+    keepPreviousData: true
+  });
+
+  const stats = data || { total: 0, active: 0, inactive: 0 };
+  const loading = isLoading;
 
   return (
     <div className="px-4 pt-4">

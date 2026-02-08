@@ -1,7 +1,19 @@
 export const users = [
   {
-    email: "renzifebriadnika@mail.com",
-    username: "renzi",
+    email: "adminrenzi@mail.com",
+    username: "admin_renzi",
+    role: "admin",
+    password: "bpsmitra",
+  },
+  {
+    email: "adminsayyid@mail.com",
+    username: "admin_sayyid",
+    role: "admin",
+    password: "bpsmitra",
+  },
+  {
+    email: "admintika@mail.com",
+    username: "admin_tika",
     role: "admin",
     password: "bpsmitra",
   },

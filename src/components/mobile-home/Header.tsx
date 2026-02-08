@@ -1,7 +1,8 @@
-import { Download, LogOut } from "lucide-react";
+import { ClipboardList, Download, LogOut, Medal, Trophy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import type { Session } from "next-auth";
+import { type Session } from "next-auth";
+import useSWR from "swr";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,17 @@ export function Header({ session }: { session: Session | null }) {
   const formattedUsername = username?.startsWith("petugas")
     ? username.replace("petugas", "ptg")
     : username;
+
+  const { data: pointsData } = useSWR(
+    session ? "/api/user/points" : null,
+    (url: string) => fetch(url).then((res) => res.json()),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+  
+  const displayPoints = pointsData?.points ?? session?.user?.points ?? 0;
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between bg-white px-4 py-3 shadow-sm">
@@ -44,6 +56,12 @@ export function Header({ session }: { session: Session | null }) {
                 <span className="text-sm font-medium text-gray-700">
                   {formattedUsername}
                 </span>
+                <div className="flex items-center gap-1 bg-yellow-100 px-2 py-0.5 rounded-full border border-yellow-200">
+                  <Medal className="w-3 h-3 text-yellow-600" />
+                  <span className="text-xs font-bold text-yellow-700">
+                    {displayPoints}
+                  </span>
+                </div>
                 <div className="relative">
                   <Avatar className="h-9 w-9 border-2 border-green-100">
                     <AvatarImage src="/placeholder-user.jpg" alt="User" />
@@ -68,9 +86,22 @@ export function Header({ session }: { session: Session | null }) {
                       <span>Download Data</span>
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/new-businesses" className="cursor-pointer">
+                      <ClipboardList className="mr-2 h-4 w-4" />
+                      <span>Review Bisnis Baru</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
+               <DropdownMenuItem asChild>
+                  <Link href="/leaderboard" className="cursor-pointer text-yellow-600">
+                    <Trophy className="mr-2 h-4 w-4" />
+                    <span>Leaderboard</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600 cursor-pointer"
                 onClick={async () => {

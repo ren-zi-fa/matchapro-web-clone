@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useActionState, useEffect, useState } from "react";
+import { mutate } from "swr";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,6 +52,7 @@ export function CreateBusinessModal({
   useEffect(() => {
     if (state.success) {
       if (open) {
+        mutate("/api/user/points");
         onOpenChange(false);
       }
     }

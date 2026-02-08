@@ -22,7 +22,15 @@ export async function GET(request: NextRequest) {
     const where: Prisma.business_locationsWhereInput = {};
 
     if (source === "user_added") {
-      where.idsbr = { endsWith: "69" };
+      const { auth } = await import("@/auth");
+      const session = await auth();
+      if (!session?.user?.id) {
+          return NextResponse.json({ data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } });
+      }
+      
+      // Filter by createdById if it exists, otherwise fallback to empty or legacy
+      // But user requested "bukan berdasarkan angka belakang 69"
+      where.createdById = session.user.id;
     } else if (idsbr) {
       where.idsbr = idsbr;
     }

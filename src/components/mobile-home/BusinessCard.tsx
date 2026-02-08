@@ -1,7 +1,9 @@
 "use client";
 
 import { CheckCircle2, ChevronDown, ChevronUp, MapPin } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { mutate } from "swr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -44,6 +46,7 @@ interface BusinessCardProps {
 }
 
 export function BusinessCard({ data }: BusinessCardProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -55,7 +58,10 @@ export function BusinessCard({ data }: BusinessCardProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         data={data}
-        onSuccess={() => window.location.reload()}
+        onSuccess={() => {
+            mutate("/api/user/points");
+            router.refresh();
+        }}
       />
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
         <Card

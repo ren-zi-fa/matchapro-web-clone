@@ -365,8 +365,8 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">-- All --</SelectItem>
-                        {options.districts.map((p) => (
-                          <SelectItem key={p.value} value={p.value.toString()}>
+                        {options.districts.map((p,i) => (
+                          <SelectItem key={i} value={p.value.toString()}>
                             {p.label || `Kec ${p.value}`}
                           </SelectItem>
                         ))}

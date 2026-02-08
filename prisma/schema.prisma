@@ -23,6 +23,12 @@ model business_locations {
   latitude          String?
   longitude         String?
   latlong_status    String?
+  
+  updatedBy         User?    @relation("UpdatedBy", fields: [updatedById], references: [id])
+  updatedById       String?
+  
+  createdBy         User?    @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById       String?
 }
 
 model User {
@@ -31,6 +37,10 @@ model User {
   email     String   @unique
   password  String
   role      String   @default("user")
+  points    Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  updatedLocations business_locations[] @relation("UpdatedBy")
+  createdLocations business_locations[] @relation("CreatedBy")
 }

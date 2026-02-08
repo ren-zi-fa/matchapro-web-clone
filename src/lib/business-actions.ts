@@ -100,6 +100,27 @@ export async function createBusinessAction(
       latlong_status = "valid";
     }
 
+    // Award points to the user if session exists
+    // Using dynamic import or standard import
+    const { auth } = await import("@/auth");
+    const session = await auth();
+    let userId = null;
+
+    if (session?.user?.email) {
+        const user = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { id: true }
+        });
+        
+        if (user) {
+            userId = user.id;
+            await prisma.user.update({
+                where: { email: session.user.email },
+                data: { points: { increment: 1 } }
+            });
+        }
+    }
+
     await prisma.business_locations.create({
       data: {
         idsbr,
@@ -109,6 +130,7 @@ export async function createBusinessAction(
         latitude: latitude || null,
         longitude: longitude || null,
         latlong_status: latlong_status,
+        createdById: userId,
 
         // Use parsed integer values
         kdprov: kdprov ? parseInt(kdprov, 10) : 13,
