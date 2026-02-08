@@ -1,6 +1,6 @@
 "use server";
 
-import { Prisma } from "@/prisma/generated/prisma/client";
+import type { Prisma } from "@/prisma/generated/prisma/client";
 import { prisma } from "@/shared/lib/db";
 
 export type LeaderboardUser = {

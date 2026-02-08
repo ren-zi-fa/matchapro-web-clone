@@ -83,7 +83,9 @@ export function Header({ session }: { session: Session | null }) {
                       className="cursor-pointer"
                     >
                       <ClipboardList className="mr-2 h-4 w-4" />
-                      <span>Usaha Yang <br /> Ditambahkan </span>
+                      <span>
+                        Usaha Yang <br /> Ditambahkan{" "}
+                      </span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

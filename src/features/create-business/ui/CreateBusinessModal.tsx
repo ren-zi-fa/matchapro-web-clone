@@ -68,7 +68,10 @@ export function CreateBusinessModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent   onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto w-[95vw] rounded-lg">
+      <DialogContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto w-[95vw] rounded-lg"
+      >
         <DialogHeader>
           <DialogTitle>Tambah Usaha Baru</DialogTitle>
           <DialogDescription>
@@ -88,7 +91,6 @@ export function CreateBusinessModal({
                 placeholder="Contoh: Toko Maju Jaya"
                 className="col-span-1 sm:col-span-3"
                 required
-               
               />
             </div>
 
