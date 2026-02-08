@@ -73,9 +73,9 @@ async function main() {
   // Initialize Prisma Client (Standard TCP connection)
   // Use DIRECT_URL for Supabase to avoid Transaction Pooler issues with prepared statements
   const pool = new Pool({
-    // connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL,
-     connectionString: process.env.DATABASE_URL,
-    // ssl: { rejectUnauthorized: false },
+    connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL,
+    //  connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
     connectionTimeoutMillis: 20000,
   });
 
