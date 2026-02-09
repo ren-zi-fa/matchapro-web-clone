@@ -1,10 +1,10 @@
 generator client {
-  provider        = "prisma-client"
+  provider = "prisma-client"
   output   = "./generated/prisma"
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model business_locations {
@@ -23,24 +23,21 @@ model business_locations {
   latitude          String?
   longitude         String?
   latlong_status    String?
-  
-  updatedBy         User?    @relation("UpdatedBy", fields: [updatedById], references: [id])
-  updatedById       String?
-  
-  createdBy         User?    @relation("CreatedBy", fields: [createdById], references: [id])
   createdById       String?
+  updatedById       String?
+  createdBy         User?   @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy         User?   @relation("UpdatedBy", fields: [updatedById], references: [id])
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  role      String   @default("user")
-  points    Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  updatedLocations business_locations[] @relation("UpdatedBy")
+  id               String               @id @default(cuid())
+  username         String               @unique
+  email            String               @unique
+  password         String
+  role             String               @default("user")
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  points           Int                  @default(0)
   createdLocations business_locations[] @relation("CreatedBy")
+  updatedLocations business_locations[] @relation("UpdatedBy")
 }

@@ -49,8 +49,8 @@ const toRow = (row: any) => ({
   nmkec: cleanString(row.nmkec),
   nmdesa: cleanString(row.nmdesa),
   status_perusahaan: cleanString(row.status_perusahaan) ?? "",
-  latitude: null,
-  longitude: null,
+  latitude: row.latitude ? String(row.latitude) : null,
+  longitude: row.longitude ? String(row.longitude) : null,
   latlong_status: cleanString(row.latlong_status) ?? "",
 });
 
@@ -109,6 +109,7 @@ async function main() {
   ========================= */
 
   const filePath = path.join(process.cwd(), "data-excel/data-seed.xlsx");
+  console.log(`Looking for Excel file at: ${filePath}`);
 
   try {
     const workbook = XLSX.readFile(filePath);
@@ -139,7 +140,8 @@ async function main() {
       await sleep(delayBusinessMs);
     }
     console.log("Business locations seeding completed.");
-  } catch (_e) {
+  } catch (e) {
+    console.error("Error reading Excel file:", e);
     console.log(
       "Excel file not found or error reading, skipping business seed.",
     );

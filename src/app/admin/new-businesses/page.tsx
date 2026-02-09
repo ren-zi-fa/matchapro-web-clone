@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/shared/ui/table";
 import { URLPagination } from "@/shared/ui/URLPagination";
+import { ExportButton } from "./ExportButton";
 
 export const dynamic = "force-dynamic";
 
@@ -62,19 +63,22 @@ export default async function AdminNewBusinessesPage(props: {
   return (
     <div className="container mx-auto p-4 pb-20 max-w-5xl">
       <Card>
-        <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-          <Link href="/">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full hover:bg-slate-100"
-            >
-              <ArrowLeft />
-            </Button>
-          </Link>
-          <CardTitle className="text-xl">
-            Review Yang Ditambahkan Oleh User
-          </CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full hover:bg-slate-100"
+              >
+                <ArrowLeft />
+              </Button>
+            </Link>
+            <CardTitle className="text-xl">
+              Review Yang Ditambahkan Oleh User
+            </CardTitle>
+          </div>
+          <ExportButton />
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">

@@ -95,6 +95,15 @@ export function Header({ session }: { session: Session | null }) {
                       </span>
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/admin/all-marked-locations"
+                      className="cursor-pointer"
+                    >
+                      <MapPin className="mr-2 h-4 w-4" />
+                      <span>Semua Lokasi Ditandai</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}

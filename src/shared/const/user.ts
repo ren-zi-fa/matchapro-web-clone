@@ -3,19 +3,19 @@ export const users = [
     email: "adminrenzi@mail.com",
     username: "admin_renzi",
     role: "admin",
-    password: "bpsmitra",
+    password: "adminbps12",
   },
   {
     email: "adminsayyid@mail.com",
     username: "admin_sayyid",
     role: "admin",
-    password: "bpsmitra",
+    password: "adminbps12",
   },
   {
     email: "admintika@mail.com",
     username: "admin_tika",
     role: "admin",
-    password: "bpsmitra",
+    password: "adminbps12",
   },
   {
     email: "popiaekaputri4@gmail.com",
