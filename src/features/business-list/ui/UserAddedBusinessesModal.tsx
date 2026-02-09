@@ -77,7 +77,10 @@ export function UserAddedBusinessesModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] rounded-lg flex flex-col">
+      <DialogContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="sm:max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] rounded-lg flex flex-col"
+      >
         <DialogHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="space-y-1">

@@ -1,4 +1,11 @@
-import { ClipboardList, Download, LogOut, Medal, Trophy } from "lucide-react";
+import {
+  ClipboardList,
+  Download,
+  LogOut,
+  MapPin,
+  Medal,
+  Trophy,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Session } from "next-auth";
@@ -98,6 +105,16 @@ export function Header({ session }: { session: Session | null }) {
                 >
                   <Trophy className="mr-2 h-4 w-4" />
                   <span>Leaderboard</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/user/marked-locations"
+                  className="cursor-pointer text-blue-600"
+                >
+                  <MapPin className="mr-2 h-4 w-4" />
+                  <span>Lokasi yang Ditandai</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

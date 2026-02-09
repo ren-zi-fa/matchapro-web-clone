@@ -34,6 +34,16 @@ export async function GET(request: NextRequest) {
       // Filter by createdById if it exists, otherwise fallback to empty or legacy
       // But user requested "bukan berdasarkan angka belakang 69"
       where.createdById = session.user.id;
+    } else if (source === "user_marked") {
+      const { auth } = await import("@/auth");
+      const session = await auth();
+      if (!session?.user?.id) {
+        return NextResponse.json({
+          data: [],
+          meta: { total: 0, page: 1, limit: 10, totalPages: 0 },
+        });
+      }
+      where.updatedById = session.user.id;
     } else if (idsbr) {
       where.idsbr = idsbr;
     }
