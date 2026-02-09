@@ -33,7 +33,6 @@ const idsbrList = [
   "37195162"
 ];
 
-const targetUserId = "cmladwzb0001eb6ik8vwgorjh";
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -56,7 +55,7 @@ async function main() {
         },
       },
       data: {
-        createdById: targetUserId,
+        createdById: null,
       },
     });
 
