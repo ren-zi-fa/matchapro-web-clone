@@ -27,14 +27,14 @@ export function BottomNav({
         </Button>
         <Button
           className="flex-1 h-12 rounded-lg bg-gray-900 hover:bg-gray-800 text-white flex flex-col items-center justify-center gap-1 shadow-sm"
-          onClick={onAddClick}
+         disabled
         >
           <div className="flex items-center gap-2">
             <PlusCircle className="h-4 w-4" />
             <span className="text-xs font-semibold leading-tight text-center">
-              Tambah
+              Tambah   Usaha 
               <br />
-              Usaha
+            (fitur ini kami nonaktifkan)
             </span>
           </div>
         </Button>
