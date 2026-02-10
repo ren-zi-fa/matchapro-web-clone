@@ -3,6 +3,7 @@
 import { Loader2, Save, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -29,6 +30,8 @@ const MapPicker = dynamic(
 
 import type { BusinessData } from "@/entities/business/model/types";
 
+import { useRouter } from "next/navigation";
+
 interface TandaiModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -42,6 +45,8 @@ export function TandaiModal({
   data,
   onSuccess,
 }: TandaiModalProps) {
+  const router = useRouter();
+  const { mutate } = useSWRConfig();
   const [_loading, _setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -128,6 +133,11 @@ export function TandaiModal({
       return;
     }
 
+    if (!formData.latitude || !formData.longitude) {
+      toast.error("Latitude dan Longitude wajib diisi!");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch(`/api/businesses/${formData.idsbr}/mark`, {
@@ -145,8 +155,17 @@ export function TandaiModal({
       if (!res.ok) throw new Error("Failed to update");
 
       toast.success("Berhasil Menandai Usaha!");
+      
+      // Mutate all business list queries to trigger re-fetch
+      await mutate(
+        (key) => typeof key === "string" && key.startsWith("/api/businesses"),
+        undefined,
+        { revalidate: true }
+      );
+
       onSuccess();
-      onClose();
+      router.push("/");
+      onClose(); // Modal will be unmounted on route change anyway
     } catch (e) {
       console.error(e);
       toast.error("Terjadi kesalahan saat menyimpan data.");

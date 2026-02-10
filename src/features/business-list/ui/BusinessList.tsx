@@ -43,8 +43,9 @@ export function BusinessList({
     isLoading,
   } = useSWR(getKey(), fetcher, {
     keepPreviousData: true, // Keep showing previous page data while loading new page
-    revalidateOnFocus: false, // User requested no refetch on focus
-    revalidateOnReconnect: false, // Also disable on reconnect
+    revalidateOnFocus: true, // User requested "seperti revalidate" (every moment) - usually this means on focus too
+    revalidateOnReconnect: true,
+    refreshInterval: 60000, // Fetch every 1 minute
   });
 
   useEffect(() => {

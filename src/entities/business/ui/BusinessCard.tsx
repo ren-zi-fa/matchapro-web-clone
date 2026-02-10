@@ -64,6 +64,7 @@ export function BusinessCard({ data }: BusinessCardProps) {
                       <h3 className="font-bold text-gray-800 text-sm uppercase">
                         {data.name}
                       </h3>
+                     
                       {data.isGC && (
                         <Badge className="bg-green-600 hover:bg-green-700 text-white text-[10px] h-5 px-1.5 gap-1 shadow-none">
                           <CheckCircle2 className="h-3 w-3" /> SUDAH GC
@@ -116,6 +117,16 @@ export function BusinessCard({ data }: BusinessCardProps) {
                           CHECK
                         </div>
 
+                        <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm space-y-1">
+                          <span className="text-[10px] text-gray-400 uppercase font-semibold">
+                            IDSBR
+                          </span>
+                          <div>
+                            <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-0 shadow-none">
+                             #{data.id}
+                            </Badge>
+                          </div>
+                        </div>
                         <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm space-y-1">
                           <span className="text-[10px] text-gray-400 uppercase font-semibold">
                             Status

@@ -174,7 +174,7 @@ export function MapPicker({
       <Button
         type="button"
         onClick={handleGetLocation}
-        variant="secondary"
+        variant="default"
         className="w-full flex gap-2 items-center justify-center border border-gray-300"
         disabled={loading}
       >
