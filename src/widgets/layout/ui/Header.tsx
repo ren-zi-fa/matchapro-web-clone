@@ -84,7 +84,7 @@ export function Header({ session }: { session: Session | null }) {
                       <span>Download Data</span>
                     </Link>
                   </DropdownMenuItem>
-                  {/* <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild>
                     <Link
                       href="/admin/new-businesses"
                       className="cursor-pointer"
@@ -94,7 +94,7 @@ export function Header({ session }: { session: Session | null }) {
                         Usaha Yang <br /> Ditambahkan{" "}
                       </span>
                     </Link>
-                  </DropdownMenuItem> */}
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link
                       href="/admin/all-marked-locations"
