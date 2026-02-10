@@ -55,6 +55,9 @@ export function Stats() {
             <p className="text-xs text-yellow-500 mt-1">
               Perhatikan Titik koordinat sebelum submit
             </p>
+            <p className="text-xs text-red-500 mt-1">
+              jika menemukan bug (kesalahan) segera lapor ke 082383246251
+            </p>
           </div>
         </CardContent>
       </Card>
