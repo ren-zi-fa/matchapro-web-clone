@@ -9,8 +9,10 @@ import {
   Search,
   SlidersHorizontal,
   X,
+  Loader2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { kecamatan, wilayah } from "@/constants";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import {
@@ -42,6 +44,7 @@ interface FilterState {
   kdkab?: string;
   kdkec?: string;
   kddesa?: string;
+  nmdesa?: string;
   status?: string;
 }
 
@@ -51,12 +54,21 @@ interface SearchFilterProps {
 
 export function SearchFilter({ onFilterChange }: SearchFilterProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [options, setOptions] = useState<FilterOptions>({
     provinces: [],
     regencies: [],
     districts: [],
     villages: [],
   });
+
+  // Derived options based on constants
+  const [districtOptions, setDistrictOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [villageOptions, setVillageOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
 
   const [filters, setFilters] = useState<FilterState>({
     idsbr: "",
@@ -69,6 +81,8 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
   });
 
   useEffect(() => {
+    // Initial load of options (Provinces & Regencies still from API/DB if needed, or constants)
+    // For this refactor, we keep fetching but we'll override districts/villages with constants
     async function fetchOptions() {
       try {
         const res = await fetch("/api/businesses/filters");
@@ -91,7 +105,41 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
       }
     }
     fetchOptions();
+
+    // Initialize Kecamatan options from constants
+    const kOptions = kecamatan.map((k) => ({
+      label: k.label,
+      value: k.key.toString(),
+    }));
+    setDistrictOptions(kOptions);
   }, []);
+
+  // Update Village options when Kecamatan changes
+  useEffect(() => {
+    if (filters.kdkec && filters.kdkec !== "all") {
+      const selectedKec = kecamatan.find(
+        (k) => k.key.toString() === filters.kdkec,
+      );
+      if (selectedKec) {
+        // Find matching wilayah in constants (uppercase name usually)
+        const wil = wilayah.find(
+          (w) => w.kecamatan.toLowerCase() === selectedKec.label.toLowerCase(),
+        );
+
+        if (wil) {
+          const vOptions = wil.nagari.map((n) => ({
+            label: n.nama,
+            value: n.nama, // Use name as value since API filters by nmdesa
+          }));
+          setVillageOptions(vOptions);
+        } else {
+          setVillageOptions([]);
+        }
+      }
+    } else {
+      setVillageOptions([]);
+    }
+  }, [filters.kdkec]);
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -127,6 +175,9 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
   };
 
   const handleApplyFilter = () => {
+    setIsLoading(true);
+    setTimeout(() => setIsLoading(false), 500);
+
     const cleanFilters: FilterState = {};
     if (filters.idsbr) cleanFilters.idsbr = filters.idsbr;
     if (filters.nama_usaha) cleanFilters.nama_usaha = filters.nama_usaha;
@@ -139,6 +190,8 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
       cleanFilters.kdkec = filters.kdkec;
     if (filters.kddesa && filters.kddesa !== "all")
       cleanFilters.kddesa = filters.kddesa;
+    if (filters.nmdesa && filters.nmdesa !== "all")
+      cleanFilters.nmdesa = filters.nmdesa;
 
     if (activeTab !== "all") {
       cleanFilters.status = activeTab;
@@ -162,6 +215,7 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
           : "",
       kdkec: "all",
       kddesa: "all",
+      nmdesa: "all",
     });
     setActiveTab("all");
     onFilterChange({});
@@ -344,8 +398,8 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="space-y-1 ">
                     <label
                       htmlFor="kecamatan-select"
                       className="text-xs font-semibold text-gray-500"
@@ -365,9 +419,9 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">-- All --</SelectItem>
-                        {options.districts.map((p) => (
-                          <SelectItem key={p.value} value={p.value.toString()}>
-                            {p.label || `Kec ${p.value}`}
+                        {districtOptions.map((p) => (
+                          <SelectItem key={p.value} value={p.value}>
+                            {p.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -381,9 +435,9 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
                       Desa/Kel
                     </label>
                     <Select
-                      value={filters.kddesa}
-                      onValueChange={(val) => handleFilterChange("kddesa", val)}
-                      disabled={!filters.kdkec}
+                      value={filters.nmdesa}
+                      onValueChange={(val) => handleFilterChange("nmdesa", val)}
+                      disabled={!filters.kdkec || filters.kdkec === "all"}
                     >
                       <SelectTrigger
                         id="desa-select"
@@ -393,12 +447,9 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">-- All --</SelectItem>
-                        {options.villages.map((p) => (
-                          <SelectItem
-                            key={`${p.value}-${p.label}`}
-                            value={p.value.toString()}
-                          >
-                            {p.label || `Desa ${p.value}`}
+                        {villageOptions.map((p) => (
+                          <SelectItem key={p.value} value={p.value}>
+                            {p.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -408,24 +459,23 @@ export function SearchFilter({ onFilterChange }: SearchFilterProps) {
               </div>
             </div>
 
-            {/* ADDITIONAL FILTERS (Placeholders/Disabled since data missing) */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
-                <SlidersHorizontal className="h-3 w-3" /> FILTER LANJUTAN
-              </div>
-              <div className="w-full h-px bg-orange-200/60" />
-              <p className="text-[10px] text-gray-400 italic">
-                Filter lanjutan (Sumber Data, Skala Usaha) tidak tersedia di
-                database
-              </p>
-            </div>
-
             <div className="flex gap-3 pt-4">
               <Button
                 onClick={handleApplyFilter}
+                disabled={isLoading}
                 className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold h-12 rounded-xl shadow-orange-200 shadow-md"
               >
-                <Search className="h-4 w-4 mr-2" /> Filter
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Memproses...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Filter
+                  </>
+                )}
               </Button>
               <Button
                 onClick={handleReset}

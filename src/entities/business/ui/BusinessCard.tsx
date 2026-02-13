@@ -222,20 +222,11 @@ export function BusinessCard({ data }: BusinessCardProps) {
                         </span>
 
                         <span className="text-gray-400 font-medium">
-                          History Profiling
+                          Alamat Usaha
                         </span>
-                        <div>
-                          {data.details?.historyProfiling ? (
-                            <Badge
-                              variant="secondary"
-                              className="bg-green-50 text-green-700 border border-green-100"
-                            >
-                              {data.details.historyProfiling}
-                            </Badge>
-                          ) : (
-                            "-"
-                          )}
-                        </div>
+                        <span className="text-gray-900 font-medium leading-relaxed">
+                          {data.details?.alamat_usaha || "-"}
+                        </span>
 
                         <span className="text-gray-400 font-medium">
                           Geotagging
@@ -255,25 +246,7 @@ export function BusinessCard({ data }: BusinessCardProps) {
                         </Button>
                       )}
 
-                      <div className="text-center">
-                        <button
-                          type="button"
-                          className="text-[10px] text-gray-400 hover:text-gray-600 flex items-center justify-center gap-1 mx-auto"
-                        >
-                          Details information not available in dummy data
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {!data.isGC && (
-                    <div className="mt-4 flex justify-center">
-                      <button
-                        type="button"
-                        className="flex items-center text-xs text-gray-400 hover:text-gray-600"
-                      >
-                        <span className="mr-1">i</span> Lihat Detail Lengkap
-                      </button>
+                     
                     </div>
                   )}
                 </div>

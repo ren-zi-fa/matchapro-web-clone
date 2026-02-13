@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const kdkab = searchParams.get("kdkab");
     const kdkec = searchParams.get("kdkec");
     const kddesa = searchParams.get("kddesa");
+    const nmdesa = searchParams.get("nmdesa");
     const status_perusahaan = searchParams.get("status"); // 'active', 'inactive', or undefined/'all'
     const source = searchParams.get("source"); // 'user_added' or undefined
 
@@ -67,6 +68,9 @@ export async function GET(request: NextRequest) {
     }
     if (kddesa) {
       where.kddesa = parseInt(kddesa, 10);
+    }
+    if (nmdesa) {
+      where.nmdesa = { contains: nmdesa, mode: "insensitive" };
     }
 
     // Status Filter Logic

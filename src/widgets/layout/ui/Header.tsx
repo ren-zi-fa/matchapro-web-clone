@@ -129,12 +129,15 @@ export function Header({ session }: { session: Session | null }) {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600 cursor-pointer"
-                onClick={async () => {
-                  await signOutAction();
-                }}
+              
               >
+                <Button size="sm" variant="outline"  onClick={async () => {
+                  await signOutAction();
+                }}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
+
+                </Button>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

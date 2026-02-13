@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import useSWR from "swr";
+import { toast } from "sonner";
 import type { BusinessData } from "@/entities/business/model/types";
 import { BusinessCard } from "@/entities/business/ui/BusinessCard";
 import { PaginationWithLinks } from "@/shared/ui/PaginationWithLinks";
@@ -22,6 +23,7 @@ export function BusinessList({
 }: BusinessListProps) {
   const [businesses, setBusinesses] = useState<BusinessData[]>([]);
   const [totalPages, setTotalPages] = useState(1);
+  const prevFiltersRef = useRef(JSON.stringify(filters));
 
   // Construct URL for SWR key
   const getKey = () => {
@@ -52,7 +54,25 @@ export function BusinessList({
     if (result) {
       // Handle new API response format { data, meta }
       const data = result.data || [];
-      setTotalPages(result.meta?.totalPages || 1);
+      const meta = result.meta || { totalPages: 1, total: 0 };
+      setTotalPages(meta.totalPages);
+
+      // Toast logic for filter changes
+      const currentFiltersStr = JSON.stringify(filters);
+      if (
+        currentFiltersStr !== prevFiltersRef.current &&
+        Object.keys(filters || {}).length > 0
+      ) {
+         // Only show toast if we have a valid response (even if empty data)
+         // We use the 'total' from meta if available, otherwise data length (less accurate for pagination)
+         const count = meta.total !== undefined ? meta.total : data.length;
+         toast.success(`Ditemukan ${count} data usaha`);
+         prevFiltersRef.current = currentFiltersStr;
+      } else if (Object.keys(filters || {}).length === 0) {
+         // If filters are cleared, update the ref so next filter is detected
+         prevFiltersRef.current = currentFiltersStr;
+      }
+
 
       if (Array.isArray(data)) {
         // biome-ignore lint/suspicious/noExplicitAny: Raw data mapping
@@ -77,7 +97,7 @@ export function BusinessList({
               kegiatanUsaha: "-",
               skalaUsaha: "UMKM",
               sumberData: "-",
-              historyProfiling: "-",
+              alamat_usaha: item.alamat_usaha || "-",
               geotagging:
                 item.latitude && item.longitude
                   ? `Latitude: ${item.latitude} | Longitude: ${item.longitude}`
@@ -103,7 +123,7 @@ export function BusinessList({
         setBusinesses(mappedData);
       }
     }
-  }, [result]);
+  }, [result, filters]);
 
   if (isLoading && !businesses.length) {
     return (

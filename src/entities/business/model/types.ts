@@ -10,7 +10,7 @@ export type BusinessData = {
     kegiatanUsaha: string;
     skalaUsaha: string;
     sumberData: string;
-    historyProfiling: string;
+    alamat_usaha: string;
     geotagging?: string;
   };
   gcData?: {
